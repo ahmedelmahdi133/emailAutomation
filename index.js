@@ -1,46 +1,36 @@
+require('dotenv').config();
 const fs = require('fs');
 const csv = require('csv-parser');
 const nodemailer = require('nodemailer');
-const cron = require('node-cron');
-const dotenv = require('dotenv');
-dotenv.config();
-// إعدادات Nodemailer (استبدل البيانات ببيانات إيميلك الحقيقية)
+
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // أو أي خدمة تانية بتستخدمها
+    service: 'gmail',
     auth: {
         user: process.env.USER,
-        pass: process.env.PASS // استخدم الـ App Password لو مفعل الـ 2FA
+        pass: process.env.PASS
     }
 });
 
-// قراءة ملف الـ CSV
+console.log('جاري بدء إرسال الإيميلات المجدولة عبر GitHub Actions...');
+
 fs.createReadStream('emails.csv')
     .pipe(csv())
     .on('data', (row) => {
-        // نفترض إن ملف الـ CSV فيه عمودين: Name و Email
         const mailOptions = {
             from: process.env.USER,
-            to: row.Email, // بيقرأ الإيميل من الملف
-            subject: 'رسالة أتمتة تجريبية',
-            text: `أهلاً ${row.Name}، دي رسالة مبعوتة بشكل تلقائي!`
+            to: row.Email,
+            subject: 'رسالة أتمتة يومية',
+            text: `أهلاً ${row.Name}، دي رسالة مبعوتة بشكل تلقائي من السيرفر!`
         };
 
-        // إرسال الإيميل
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.log(`حدث خطأ أثناء إرسال الإيميل لـ ${row.Email}:`, error);
             } else {
-                console.log(`تم إرسال الإيميل بنجاح لـ ${row.Email}: ` + info.response);
+                console.log(`تم إرسال الإيميل بنجاح لـ ${row.Email}`);
             }
         });
     })
     .on('end', () => {
-        console.log('تمت قراءة ملف الـ CSV بالكامل.');
+        console.log('تمت قراءة ملف الـ CSV وإرسال الدفعة بنجاح.');
     });
-
-    // تشغيل السكريبت كل يوم الساعة 9:00 صباحاً
-// لو عايز تجربه دلوقتي فوراً وتخليه يشتغل كل دقيقة، غير القيمة دي لـ '* * * * *'
-cron.schedule('* * * * *', () => {
-    sendEmails();
-});
-console.log('تم جدولة إرسال الإيميلات كل يوم الساعة 9:00 صباحاً.');

@@ -1,0 +1,37 @@
+name: Daily Email Automation
+
+# تحديد متى يعمل السكريبت
+on:
+  schedule:
+    # التوقيت هنا بنظام Cron (توقيت جرينتش UTC)
+    # المثال ده هيشغله كل يوم الساعة 6 صباحاً بتوقيت جرينتش (اللي هي 10 الصبح بتوقيت دبي)
+    - cron: '0 6 * * *'
+  
+  # السطر ده بيسمحلك تشغل السكريبت يدوياً من موقع جيت هب في أي وقت عشان تجربه
+  workflow_dispatch:
+
+jobs:
+  send-emails:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. تنزيل الكود من المستودع
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2. تجهيز بيئة Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    # 3. تسطيب المكتبات
+    - name: Install dependencies
+      run: npm install
+
+    # 4. تشغيل السكريبت مع تمرير المتغيرات السرية
+    - name: Run email script
+      env:
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+      run: node index.js
