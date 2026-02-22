@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  email-automation:
+    build: .
+    container_name: email-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./emails.csv:/app/emails.csv
+    environment:
+      - TZ=Asia/Dubai
